@@ -12,35 +12,48 @@ FUNCTION_BLOCK ids
 	 * Bloque de definicion de las variables de entrada
 	 */
 	VAR_INPUT
-		attack : REAL;
-		port   : REAL;	
+		duration : REAL;
+		count 	 : REAL;
+		srv_count 	 : REAL;		
 	END_VAR
 
 	/*
 	 * Bloque de definicion de las variables de salida
 	 */
 	VAR_OUTPUT
-		alert : REAL;
+		ControlAction : REAL;
 	END_VAR
 
 	/*
 	 * Conjuntos difusos de entrada
 	 */
-	FUZZIFY attack
-		TERM dos := (0, 0) (1, 1) (2, 0); 
+	FUZZIFY duration
+		TERM little := (0, 0) (7500, 1) (15000, 0);
+		TERM media  := (10000, 0) (20000, 1) (30000, 0);
+		TERM hight  := (20000, 0) (30000, 1) (42000, 0); 
 	END_FUZZIFY
 
-	FUZZIFY port
-		TERM http := (1, 0) (2, 1) (3, 0);
+	FUZZIFY count
+		TERM little := (0, 0) (125, 1) (250, 0);
+		TERM media  := (170, 0) (300, 1) (430, 0);
+		TERM hight  := (350, 0) (512, 1);
+	END_FUZZIFY
+
+	FUZZIFY srv_count
+		TERM little := (0, 0) (125, 1) (250, 0);
+		TERM media  := (170, 0) (300, 1) (430, 0);
+		TERM hight  := (350, 0) (512, 1);
 	END_FUZZIFY
 
 	/*
 	 * Conjuntos difusos de salida
 	 */
-	DEFUZZIFY alert
-		TERM dangerous := (0, 0) (1, 1) (2, 0);
+	DEFUZZIFY ControlAction
+		TERM email	:= (0, 0) (4.5, 1) (9, 0);
+		TERM sms 	:= (6, 0) (10.5, 1) (15, 0);
+		TERM block	:= (12, 0) (16.5 ,1) (21, 0);
 		METHOD : COG;
-		DEFAULT := 0;
+		DEFAULT := 3;
 	END_DEFUZZIFY
 
 	/*
@@ -51,7 +64,11 @@ FUNCTION_BLOCK ids
 		ACT : MIN;
 		ACCU : MAX;
 
-		RULE 1 : IF attack IS dos THEN alert IS dangerous;
+		RULE 1 : IF duration IS little THEN ControlAction IS block;
+		RULE 2 : IF duration IS media  THEN ControlAction IS sms;
+		RULE 4 : IF (duration IS little) AND (count IS hight) THEN ControlAction IS block;
+		RULE 5 : IF (duration IS hight) AND (count IS little) THEN ControlAction IS email;
+
 	END_RULEBLOCK
 
 END_FUNCTION_BLOCK
